@@ -101,6 +101,18 @@
     <h2 class="section-title">Notebooks</h2>
     <p>Interactive notebooks in edit mode - you can modify and experiment with the code</p>
     <div class="cards">
+      {% for notebook in notebooks %}
+      <!-- {{ notebook.display_name }} Notebook -->
+      <div class="card">
+        <div class="card-header">{{ notebook.display_name }}</div>
+        <div class="card-body">
+          <a href="{{ notebook.html_path }}" class="card-link">Open Notebook</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
     {% if apps %}
     <h2 class="section-title">Apps</h2>
     <p>Interactive applications in run mode - code is hidden for a clean user interface</p>
