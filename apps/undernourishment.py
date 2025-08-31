@@ -67,6 +67,12 @@ def _(date_range_slider):
 
 
 @app.cell
+def _(max, min, mo):
+    mo.md(f"""> Selected dates: {min} - {max}""")
+    return
+
+
+@app.cell
 def _(df, max, min, multiselect, pd):
     df1 =df[df['Entity'].isin(multiselect.value) & (df['Year']>= min) & (df['Year'] <= max)]
     world_data = df[df['Entity'] == 'World'][['Year','undernourishment']]
@@ -161,23 +167,37 @@ def _(
             if percent_w_most_improv < 0
             else "decrease"
     )
-    mo.hstack([average_undernourishment_stat,year_low_undernourishment_stat,year_high_undernourishment_stat,most_improved_entity_stat])
+    mo.hstack([average_undernourishment_stat,year_low_undernourishment_stat,year_high_undernourishment_stat,most_improved_entity_stat],widths="equal")
     return
 
 
 @app.cell
 def _(alt, df2, mo):
-    chart1 = alt.Chart(df2).mark_line(point=alt.OverlayMarkDef(size=20),strokeWidth=2).encode(
-    x=alt.X('Year:Q', axis=alt.Axis(format='d', title='Year')), 
-    y=alt.Y('undernourishment:Q', axis=alt.Axis(title='Undernourishment Prevalence (%)')),
-        color='Entity',
-        tooltip=[
-            'Entity', 
-            'Year', 
-            alt.Tooltip('undernourishment', title='Nourishment:', format='.1f', formatType='number')
-
-        ]
-    ).properties(title='Prevalence of Undernourishment Over Time by Region',font="Lato").configure_legend(orient="bottom",title=None).interactive()
+    chart1 = alt.Chart(df2).mark_line(
+            point=alt.OverlayMarkDef(
+                size=20,  # Point size
+                shape='circle',  
+                filled=True,  # Whether points are filled
+                stroke='white',  # Point outline color
+                strokeWidth=1  # Point outline thickness
+            ),
+            strokeWidth=3  # Line thickness (increase from 2 to 3)
+        ).encode(
+            x=alt.X('Year:Q', axis=alt.Axis(format='d', title='Year')), 
+            y=alt.Y('undernourishment:Q', axis=alt.Axis(title='Undernourishment Prevalence (%)')),
+            color='Entity',
+            tooltip=[
+                'Entity', 
+                'Year', 
+                alt.Tooltip('undernourishment', title='Nourishment:', format='.1f', formatType='number')
+            ]
+        ).properties(
+            title='Prevalence of Undernourishment Over Time by Region',
+            font="Lato"
+        ).configure_legend(
+            orient="bottom",
+            title=None
+        ).interactive()
     mo.ui.altair_chart(chart1)
     return
 
@@ -213,15 +233,22 @@ def _(alt, multiselect, yearly_agg):
 
 @app.cell
 def _(alt, result):
-    chart3 = alt.Chart(result[result['Entity']!= 'World']).mark_line(point=True,size=3).encode(
+    chart3 = alt.Chart(result[result['Entity']!= 'World']).mark_line(
+            point=alt.OverlayMarkDef(
+                size=40,  # Point size
+                shape='circle',  
+                filled=True,  # Whether points are filled
+                stroke='white',  # Point outline color
+                strokeWidth=1  # Point outline thickness
+            ),
+            strokeWidth=4  # Line thickness (increase from 2 to 3)
+        ).encode(
             x='Year:O',
             y='variance_to_world',
             color='Entity',
             tooltip=['Entity', 'Year', 'undernourishment', 'variance_to_world']
         ).properties(
-            # width=600,
-            # height=400,
-            title='Variance to World Undernourishment (First and Last Year)'
+            title='Change in Undernourishment'
         ).configure_legend(orient="bottom",title=None).interactive()
     return (chart3,)
 
