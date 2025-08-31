@@ -228,38 +228,8 @@ def _(alt, result):
             width=600,
             height=400,
             title='Variance to World Undernourishment (First and Last Year)'
-        ).interactive()
+        ).configure_legend(orient="bottom",title=None).interactive()
     return
-
-@app.cell
-def _(mo, chart1, chart2, chart3, stats_row):
-    # Create a custom layout using mo.vstack and mo.hstack
-    # Replace chart1, chart2, etc. with your actual component variables
-    
-    # First row - full width
-    controls = mo.hstack([date_range_slider, multiselect])
-    
-    # Second row - full width stats
-    # (You already have this in your code with the mo.hstack of stats)
-    
-    # Third row - two charts side by side
-    charts_row = mo.hstack([
-        chart1,  # Your line chart
-        chart2   # Your bar chart
-    ])
-    
-    # Fourth row - full width
-    bottom_chart = chart3  # Your variance chart
-    
-    # Combine everything vertically
-    layout = mo.vstack([
-        controls,
-        stats_row,
-        charts_row,
-        bottom_chart
-    ])
-    
-    return layout
 
 if __name__ == "__main__":
     app.run()
