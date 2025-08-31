@@ -1,56 +1,43 @@
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "altair==5.4.1",
+#     "marimo",
+#     "pandas==2.2.3",
+#     "datetime",
+#     "requests",
+# ]
+# ///
+
 import marimo
 
 __generated_with = "0.14.16"
-app = marimo.App()
-
-
-@app.cell
-def _():
-    import marimo as mo
-    return (mo,)
-
-
-@app.cell
-def _():
-    import altair as alt
-    return (alt,)
+app = marimo.App(width="full")
 
 
 @app.cell
 def _():
     import datetime
-    return (datetime,)
+    import marimo as mo
+    import altair as alt
+    import pandas as pd
+    import requests
+    return alt, datetime, mo, pd
 
 
 @app.cell
-def _():
-    import pandas as pd
-    import requests
-
+def _(pd):
     df = pd.read_csv("https://ourworldindata.org/grapher/prevalence-of-undernourishment.csv?v=1&csvType=full&useColumnShortNames=true", storage_options = {'User-Agent': 'Our World In Data data fetch/1.0'})
     df.rename(columns={df.columns[-1]: "undernourishment"}, inplace=True)
     df = df.drop(columns=['Code'])
-
-    return df, pd
-
-
-@app.cell
-def _(df):
-    df
-    return
+    return (df,)
 
 
 @app.cell
 def _(mo):
     options = ["World","Northern Africa (FAO)","South-eastern Asia (FAO)","South America (FAO)","Central Asia (FAO)","Sub-Saharan Africa (FAO)"]
-    multiselect = mo.ui.multiselect(options=options,value=["Northern Africa (FAO)","South-eastern Asia (FAO)","South America (FAO)","Central Asia (FAO)","Sub-Saharan Africa (FAO)"])
+    multiselect = mo.ui.multiselect(options=options,value=["Northern Africa (FAO)","South-eastern Asia (FAO)","South America (FAO)","Central Asia (FAO)","Sub-Saharan Africa (FAO)"],label="Select Region:")
     return (multiselect,)
-
-
-@app.cell
-def _(mo, multiselect):
-    mo.hstack([multiselect, mo.md(f"Has value: {multiselect.value}")])
-    return
 
 
 @app.cell
@@ -67,8 +54,8 @@ def _(datetime, mo):
 
 
 @app.cell
-def _(date_range_slider, mo):
-    mo.hstack([date_range_slider])
+def _(date_range_slider, mo, multiselect):
+    mo.hstack([date_range_slider,multiselect])
     return
 
 
@@ -76,38 +63,105 @@ def _(date_range_slider, mo):
 def _(date_range_slider):
     min = date_range_slider.value[0]
     max = date_range_slider.value[1]
-    min
-    max
     return max, min
 
 
 @app.cell
-def _(df, max, min, multiselect):
+def _(df, max, min, multiselect, pd):
     df1 =df[df['Entity'].isin(multiselect.value) & (df['Year']>= min) & (df['Year'] <= max)]
-    df1
-    return (df1,)
-
-
-@app.cell
-def _(df):
-    # Create a mapping of year to world undernourishment prevalence
     world_data = df[df['Entity'] == 'World'][['Year','undernourishment']]
     world_data.rename(columns={world_data.columns[-1]: "global_value"}, inplace=True)
-    world_data
-    return (world_data,)
-
-
-@app.cell
-def _(df1, world_data):
     df2 = df1.merge(world_data,left_on ='Year',right_on ='Year')
     df2['variance_to_world'] = df2['undernourishment'] - df2['global_value']
-    df2
-    return (df2,)
+    yearly_agg = df2.groupby('Year').agg({
+            'undernourishment': ['mean', 'median', 'min', 'max'],
+            'global_value': 'first',  # Since global value is the same for each year
+            'variance_to_world': ['mean', 'median', 'min', 'max']
+        }).reset_index()
+
+        # Flatten the multi-level column headers
+    yearly_agg.columns = ['_'.join(col).strip('_') for col in yearly_agg.columns.values]
+    most_recent = df2[df2['Year'] == max]
+    earliest = df2[df2['Year'] == min]
+    result = pd.concat([earliest,most_recent])
+
+    min_year = df2[df2['Entity'] != 'World'].loc[df2[df2['Entity'] != 'World']['undernourishment'].idxmin(), 'Year']
+    min_entity = df2[df2['Entity'] != 'World'].loc[df2[df2['Entity'] != 'World']['undernourishment'].idxmin(), 'Entity']
+    max_year = df2[df2['Entity'] != 'World'].loc[df2[df2['Entity'] != 'World']['undernourishment'].idxmax(), 'Year']
+    max_entity = df2[df2['Entity'] != 'World'].loc[df2[df2['Entity'] != 'World']['undernourishment'].idxmax(), 'Entity']
+    average_undernourishment_rate = round(df2['undernourishment'].mean(),2)
+    average_undernourishment_rate_world = round(world_data['global_value'].mean(),2)
+    result['undernourishment_lag'] = result.groupby('Entity')['undernourishment'].shift(1)
+
+    average_vs_world = round(average_undernourishment_rate -average_undernourishment_rate_world,2)
+
+    # Calculate difference between current and lagged values
+    result['undernourishment_change'] = result['undernourishment'] - result['undernourishment_lag']
+    result[result['undernourishment_change'].notna()]
+    entity_w_most_improv = result[result['Entity'] != 'World'].loc[result[result['Entity'] != 'World']['undernourishment_change'].idxmin(), 'Entity']
+
+    percent_w_most_improv = round(result[result['Entity'] != 'World'].loc[result[result['Entity'] != 'World']['undernourishment_change'].idxmin(), 'undernourishment_change'],2)
+    return (
+        average_undernourishment_rate,
+        average_vs_world,
+        df2,
+        entity_w_most_improv,
+        max_entity,
+        max_year,
+        min_entity,
+        min_year,
+        percent_w_most_improv,
+        result,
+        yearly_agg,
+    )
 
 
 @app.cell
-def _(df2):
-    df2.columns
+def _(
+    average_undernourishment_rate,
+    average_vs_world,
+    entity_w_most_improv,
+    max_entity,
+    max_year,
+    min_entity,
+    min_year,
+    mo,
+    percent_w_most_improv,
+):
+    average_undernourishment_stat = mo.stat(
+        label = "Average Undernourishment Rate",
+        bordered=True,
+        caption = f"Vs World Average: {average_vs_world/100:.00%}",
+        value =  f"{average_undernourishment_rate/100:.00%}",
+        direction="increase"
+            if average_vs_world > 0
+            else "decrease"
+    )
+
+    year_low_undernourishment_stat = mo.stat(
+        label = "Year with Lowest Undernourishment Rate",
+        bordered=True,
+        caption = f"Entity: {min_entity}",
+        value =  f"{min_year}"
+    )
+
+    year_high_undernourishment_stat = mo.stat(
+        label = "Year with Highest Undernourishment Rate",
+        bordered=True,
+        caption = f"Entity: {max_entity}",
+        value =  f"{max_year}"
+    )
+
+    most_improved_entity_stat = mo.stat(
+        label = "Greatest Reduction in Undernourishment",
+        bordered=True,
+        caption = f"Entity: {entity_w_most_improv}",
+        value =  f"{percent_w_most_improv/100:.00%}",
+        direction="increase"
+            if percent_w_most_improv < 0
+            else "decrease"
+    )
+    mo.hstack([average_undernourishment_stat,year_low_undernourishment_stat,year_high_undernourishment_stat,most_improved_entity_stat])
     return
 
 
@@ -130,136 +184,51 @@ def _(alt, df2, mo):
 
 
 @app.cell
-def _(df2):
-    df2
-    return
+def _(alt, mo, multiselect, yearly_agg):
+    selected_regions = ", ".join(multiselect.value)    
 
-
-@app.cell
-def _(alt, df2, mo):
-    color_scale = alt.condition(
-            alt.datum.variance_to_world < 0,
-            alt.value("steelblue"),  # When below 0
-            alt.value("indianred")  # Otherwise
+    color_scale_2 = alt.condition(
+                alt.datum.variance_to_world_mean < 0,
+                alt.value("steelblue"),  # When below 0
+                alt.value("indianred")  # Otherwise
         )
 
-    chart2 = alt.Chart(df2[df2['Entity'] != 'World']).mark_bar(size=2).encode(
-                x=alt.X('Year:Q', axis=alt.Axis(format='d', title=None)),
-                y=alt.Y('variance_to_world:Q', axis=alt.Axis(title='Variance to World')),
-                color=color_scale,  
-                column=alt.Column('Entity:N',title=None),  
-                tooltip=[
-                    'Entity', 
-                    'Year', 
-                    alt.Tooltip('undernourishment', title='undernourishment:', format='.1f', formatType='number'),
-                    alt.Tooltip('variance_to_world', title='variance:', format='.1f', formatType='number')
-                ]
-            ).properties(
-                title='Variance to World Undernourishment by Region (%)',
-                font="Lato",
-                width=100  # Adjust width as needed
-            ).configure_legend(orient="bottom", title=None).interactive()
+    chart3 = alt.Chart(yearly_agg[['Year','undernourishment_median','variance_to_world_mean']]).mark_bar(size=5).encode(
+                        x=alt.X('Year:Q', axis=alt.Axis(format='d', title=None)),
+                        y=alt.Y('variance_to_world_mean:Q', axis=alt.Axis(title='Variance to World Average')),
+                        color=color_scale_2,  
+                        tooltip=[
+                            'Year', 
+                            alt.Tooltip('undernourishment_median', title='undernourishment:', format='.1f', formatType='number'),
+                            alt.Tooltip('variance_to_world_mean', title='variance:', format='.1f', formatType='number')
+                        ]
+                    ).properties(
+                        title='Variance to World Undernourishment',
+                        font="Lato",
+                        width="container"
+                    ).configure_legend(orient="bottom", title=None).configure_view(
+                        continuousWidth=200  
+                    ).interactive()
 
-    mo.ui.altair_chart(chart2)
-    return (color_scale,)
-
-
-@app.cell
-def _(alt, color_scale, df2, mo):
-
-    chart3 = alt.Chart(df2[df2['Entity'] != 'World']).mark_bar(size=5).encode(
-                    x=alt.X('Year:Q', axis=alt.Axis(format='d', title=None)),
-                    y=alt.Y('variance_to_world:Q', axis=alt.Axis(title='Variance to World')),
-                    color=color_scale,  
-                    column=alt.Column('Entity:N', title=None, spacing=2),  # Added spacing parameter
-                    tooltip=[
-                        'Entity', 
-                        'Year', 
-                        alt.Tooltip('undernourishment', title='undernourishment:', format='.1f', formatType='number'),
-                        alt.Tooltip('variance_to_world', title='variance:', format='.1f', formatType='number')
-                    ]
-                ).properties(
-                    title='Variance to World Undernourishment by Region (%)',
-                    font="Lato",
-                    # Width set to "container" for responsive sizing
-                    width="container"
-                ).configure_legend(orient="bottom", title=None).configure_view(
-                    continuousWidth=200  # Controls the default width behavior for the view
-                ).interactive()
-
-    mo.ui.altair_chart(chart3)
+    mo.vstack([
+            mo.ui.altair_chart(chart3),
+            mo.md(f"*Selected regions: {selected_regions}*")
+        ])
     return
-
-
-@app.cell
-def _():
-    from vega_datasets import data
-
-    source = data.barley()
-    return (source,)
-
-
-@app.cell
-def _(source):
-    source
-    return
-
-
-@app.cell
-def _(alt, df2):
-    alt.Chart(df2).mark_bar().encode(
-        x='sum(variance_to_world):Q',
-        y='Year:O',
-    #    color='Year:N',
-        row='Entity:N'
-    )
-    return
-
-
-@app.cell
-def _(alt, source):
-
-    alt.Chart(source).mark_line().encode(
-        x='year:O',
-        y='median(yield)',
-        color='site'
-    )
-    return
-
-
-@app.cell
-def _(df2, max, min):
-    df3 = df2[(df2['Year']== min) & (df2['Year'] == max)]
-    df3
-    return
-
-
-@app.cell
-def _(df2):
-    df2
-    return
-
-
-@app.cell
-def _(df2, max, min, pd):
-    most_recent = df2[df2['Year'] == max]
-    earliest = df2[df2['Year'] == min]
-    result = pd.concat([earliest,most_recent])
-    return (result,)
 
 
 @app.cell
 def _(alt, result):
-    alt.Chart(result).mark_line().encode(
-        x='Year:O',
-        y='variance_to_world',
-        color='Entity'
-    ).interactive()
-    return
-
-
-@app.cell
-def _():
+    alt.Chart(result[result['Entity']!= 'World']).mark_line(point=True,size=3).encode(
+            x='Year:O',
+            y='variance_to_world',
+            color='Entity',
+            tooltip=['Entity', 'Year', 'undernourishment', 'variance_to_world']
+        ).properties(
+            width=600,
+            height=400,
+            title='Variance to World Undernourishment (First and Last Year)'
+        ).interactive()
     return
 
 
