@@ -1,92 +1,45 @@
 {
-  "type": "grid",
-  "data": {
-    "columns": 24,
-    "rowHeight": 20,
-    "maxWidth": 1400,
-    "bordered": true,
-    "cells": [
-      {
-        "position": [5, 0, 15, 3]
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": [0, 10, 5, 7]
-      },
-      {
-        "position": [0, 7, 3, 3]
-      },
-      {
-        "position": null
-      },
-      {
-        "position": null
-      },
-      {
-        "position": [5, 3, 9, 22]
-      },
-      {
-        "position": [14, 3, 10, 22]
-      },
-      {
-        "position": [5, 25, 9, 23]
-      },
-      {
-        "position": [14, 25, 10, 23]
-      },
-      {
-        "position": null
-      },
-      {
-        "position": [0, 0, 5, 7]
-      },
-      {
-        "position": [0, 17, 5, 28]
-      }
-    ]
-  }
+  "version": 1,
+  "grid": [
+    {
+      "id": "controls",
+      "cellId": "4",
+      "x": 0,
+      "y": 0,
+      "width": 12,
+      "height": 1
+    },
+    {
+      "id": "stats",
+      "cellId": "7",
+      "x": 0,
+      "y": 1,
+      "width": 12,
+      "height": 1
+    },
+    {
+      "id": "line_chart",
+      "cellId": "8",
+      "x": 0,
+      "y": 2,
+      "width": 6,
+      "height": 2
+    },
+    {
+      "id": "bar_chart",
+      "cellId": "9",
+      "x": 6,
+      "y": 2,
+      "width": 6,
+      "height": 2
+    },
+    {
+      "id": "variance_chart",
+      "cellId": "10",
+      "x": 0,
+      "y": 4,
+      "width": 12,
+      "height": 1
+    }
+  ]
 }
