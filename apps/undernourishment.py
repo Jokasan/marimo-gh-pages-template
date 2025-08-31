@@ -212,7 +212,7 @@ def _(alt, multiselect, yearly_agg):
                 alt.value("indianred")  # Otherwise
         )
 
-    chart2 = alt.Chart(yearly_agg[['Year','undernourishment_median','variance_to_world_mean']]).mark_bar(size=10).encode(
+    chart2 = alt.Chart(yearly_agg[['Year','undernourishment_median','variance_to_world_mean']]).mark_bar(size=20).encode(
                         x=alt.X('Year:Q', axis=alt.Axis(format='d', title=None)),
                         y=alt.Y('variance_to_world_mean:Q', axis=alt.Axis(title='Variance to World Average')),
                         color=color_scale_2,  
@@ -233,7 +233,7 @@ def _(alt, multiselect, yearly_agg):
 
 @app.cell
 def _(alt, result):
-    chart3 = alt.Chart(result[result['Entity']!= 'World']).mark_line(
+    chart3 = alt.Chart(result).mark_line(
             point=alt.OverlayMarkDef(
                 size=40,  # Point size
                 shape='circle',  
@@ -246,7 +246,7 @@ def _(alt, result):
             x='Year:O',
             y='variance_to_world',
             color='Entity',
-            tooltip=['Entity', 'Year', 'undernourishment', 'variance_to_world']
+            tooltip=['Entity', 'Year', 'undernourishment']
         ).properties(
             title='Change in Undernourishment'
         ).configure_legend(orient="bottom",title=None).interactive()
