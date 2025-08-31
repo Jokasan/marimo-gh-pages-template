@@ -79,7 +79,7 @@ def _(df, max, min, multiselect, pd):
     world_data.rename(columns={world_data.columns[-1]: "global_value"}, inplace=True)
     df2 = df1.merge(world_data,left_on ='Year',right_on ='Year')
     df2['variance_to_world'] = df2['undernourishment'] - df2['global_value']
-    yearly_agg = df2.groupby('Year').agg({
+    yearly_agg = df2[df2['Entity'] != 'World'].groupby('Year').agg({
             'undernourishment': ['mean', 'median', 'min', 'max'],
             'global_value': 'first',  # Since global value is the same for each year
             'variance_to_world': ['mean', 'median', 'min', 'max']
@@ -127,8 +127,10 @@ def _(
     average_undernourishment_rate,
     average_vs_world,
     entity_w_most_improv,
+    max,
     max_entity,
     max_year,
+    min,
     min_entity,
     min_year,
     mo,
@@ -137,10 +139,10 @@ def _(
     average_undernourishment_stat = mo.stat(
         label = "Average Undernourishment Rate",
         bordered=True,
-        caption = f"Vs World Average: {average_vs_world/100:.00%}",
-        value =  f"{average_undernourishment_rate/100:.00%}",
+        caption = f"Compared to World Average: {average_vs_world/100:.2%}",
+        value =  f"{average_undernourishment_rate/100:.2%}",
         direction="increase"
-            if average_vs_world > 0
+            if average_vs_world < 0
             else "decrease"
     )
 
@@ -159,10 +161,10 @@ def _(
     )
 
     most_improved_entity_stat = mo.stat(
-        label = "Greatest Reduction in Undernourishment",
+        label = "Best Undernourishment Rate improvement",
         bordered=True,
-        caption = f"Entity: {entity_w_most_improv}",
-        value =  f"{percent_w_most_improv/100:.00%}",
+        caption = f"Entity: {entity_w_most_improv}, {min} - {max}",
+        value =  f"{percent_w_most_improv/100:.2%}",
         direction="increase"
             if percent_w_most_improv < 0
             else "decrease"
@@ -175,16 +177,22 @@ def _(
 def _(alt, df2, mo):
     chart1 = alt.Chart(df2).mark_line(
             point=alt.OverlayMarkDef(
-                size=20,  # Point size
+                size=45,  # Point size
                 shape='circle',  
                 filled=True,  # Whether points are filled
                 stroke='white',  # Point outline color
                 strokeWidth=1  # Point outline thickness
             ),
-            strokeWidth=3  # Line thickness (increase from 2 to 3)
+            strokeWidth=4  # Line thickness (increase from 2 to 3)
         ).encode(
-            x=alt.X('Year:Q', axis=alt.Axis(format='d', title='Year')), 
-            y=alt.Y('undernourishment:Q', axis=alt.Axis(title='Undernourishment Prevalence (%)')),
+            x=alt.X('Year:Q', 
+                    axis=alt.Axis(format='d', title='Year'),
+                    # Set the visible year range (e.g., 2010-2020)
+                    scale=alt.Scale(domain=[2000.5, 2023.5])), 
+            y=alt.Y('undernourishment:Q', 
+                    axis=alt.Axis(title='Undernourishment Prevalence (%)'),
+                    # Set the visible undernourishment range (e.g., 0-30%)
+                    scale=alt.Scale(domain=[0, df2['undernourishment'].max()+2])),
             color='Entity',
             tooltip=[
                 'Entity', 
@@ -244,12 +252,15 @@ def _(alt, result):
             strokeWidth=4  # Line thickness (increase from 2 to 3)
         ).encode(
             x='Year:O',
-            y='variance_to_world',
+            y=alt.Y('undernourishment:Q', 
+                    axis=alt.Axis(title='Undernourishment Prevalence (%)'),
+                    # Set the visible undernourishment range (e.g., 0-30%)
+                    scale=alt.Scale(domain=[0, result['undernourishment'].max()+2])),
             color='Entity',
-            tooltip=['Entity', 'Year', 'undernourishment']
+            tooltip=['Entity', 'Year', 'variance_to_world']
         ).properties(
             title='Change in Undernourishment'
-        ).configure_legend(orient="bottom",title=None).interactive()
+        ).configure_legend(orient="bottom",title=None,columns=3).interactive()
     return (chart3,)
 
 
@@ -261,7 +272,7 @@ def _(chart2, chart3, mo, selected_regions):
             mo.md(f"*Selected regions: {selected_regions}*")
         ]),
             mo.ui.altair_chart(chart3)
-        ],widths="equal")
+        ],widths=["70%", "30%"])
     return
 
 
