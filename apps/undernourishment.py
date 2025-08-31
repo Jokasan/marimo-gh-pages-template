@@ -11,7 +11,7 @@
 
 import marimo
 
-__generated_with = "0.14.16"
+__generated_with = "0.15.2"
 app = marimo.App(width="full")
 
 
@@ -167,7 +167,7 @@ def _(
 
 @app.cell
 def _(alt, df2, mo):
-    chart = alt.Chart(df2).mark_line(point=alt.OverlayMarkDef(size=20),strokeWidth=2).encode(
+    chart1 = alt.Chart(df2).mark_line(point=alt.OverlayMarkDef(size=20),strokeWidth=2).encode(
     x=alt.X('Year:Q', axis=alt.Axis(format='d', title='Year')), 
     y=alt.Y('undernourishment:Q', axis=alt.Axis(title='Undernourishment Prevalence (%)')),
         color='Entity',
@@ -178,13 +178,12 @@ def _(alt, df2, mo):
 
         ]
     ).properties(title='Prevalence of Undernourishment Over Time by Region',font="Lato").configure_legend(orient="bottom",title=None).interactive()
-
-    mo.ui.altair_chart(chart)
+    mo.ui.altair_chart(chart1)
     return
 
 
 @app.cell
-def _(alt, mo, multiselect, yearly_agg):
+def _(alt, multiselect, yearly_agg):
     selected_regions = ", ".join(multiselect.value)    
 
     color_scale_2 = alt.condition(
@@ -193,7 +192,7 @@ def _(alt, mo, multiselect, yearly_agg):
                 alt.value("indianred")  # Otherwise
         )
 
-    chart3 = alt.Chart(yearly_agg[['Year','undernourishment_median','variance_to_world_mean']]).mark_bar(size=5).encode(
+    chart2 = alt.Chart(yearly_agg[['Year','undernourishment_median','variance_to_world_mean']]).mark_bar(size=10).encode(
                         x=alt.X('Year:Q', axis=alt.Axis(format='d', title=None)),
                         y=alt.Y('variance_to_world_mean:Q', axis=alt.Axis(title='Variance to World Average')),
                         color=color_scale_2,  
@@ -209,27 +208,35 @@ def _(alt, mo, multiselect, yearly_agg):
                     ).configure_legend(orient="bottom", title=None).configure_view(
                         continuousWidth=200  
                     ).interactive()
-
-    mo.vstack([
-            mo.ui.altair_chart(chart3),
-            mo.md(f"*Selected regions: {selected_regions}*")
-        ])
-    return
+    return chart2, selected_regions
 
 
 @app.cell
 def _(alt, result):
-    alt.Chart(result[result['Entity']!= 'World']).mark_line(point=True,size=3).encode(
+    chart3 = alt.Chart(result[result['Entity']!= 'World']).mark_line(point=True,size=3).encode(
             x='Year:O',
             y='variance_to_world',
             color='Entity',
             tooltip=['Entity', 'Year', 'undernourishment', 'variance_to_world']
         ).properties(
-            width=600,
-            height=400,
+            # width=600,
+            # height=400,
             title='Variance to World Undernourishment (First and Last Year)'
         ).configure_legend(orient="bottom",title=None).interactive()
+    return (chart3,)
+
+
+@app.cell
+def _(chart2, chart3, mo, selected_regions):
+    mo.hstack([
+           mo.vstack([
+            mo.ui.altair_chart(chart2),
+            mo.md(f"*Selected regions: {selected_regions}*")
+        ]),
+            mo.ui.altair_chart(chart3)
+        ],widths="equal")
     return
+
 
 if __name__ == "__main__":
     app.run()
