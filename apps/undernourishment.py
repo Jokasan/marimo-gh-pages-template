@@ -218,8 +218,8 @@ def _(alt, df2, max, min, mo):
                     scale=alt.Scale(domain=[0, df2['undernourishment'].max()+2])),
             color='Entity',
             tooltip=[
-                'Entity', 
-                'Year', 
+                'Entity:', 
+                'Year:', 
                 alt.Tooltip('undernourishment', title='Undernourishment:', format='.1f', formatType='number')
             ]
         ).properties(
@@ -258,7 +258,7 @@ def _(alt, max, min, multiselect, yearly_agg):
                         y=alt.Y('variance_to_world_mean:Q', axis=alt.Axis(title='Variance to World Average')),
                         color=color_scale_2,  
                         tooltip=[
-                            'Year', 
+                            'Year:', 
                             alt.Tooltip('undernourishment_mean', title='Undernourishment:', format='.1f'),
                             alt.Tooltip('variance_description', title='Comparison:')
                         ]
