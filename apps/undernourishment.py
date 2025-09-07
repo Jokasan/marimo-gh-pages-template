@@ -218,8 +218,8 @@ def _(alt, df2, max, min, mo):
                     scale=alt.Scale(domain=[0, df2['undernourishment'].max()+2])),
             color='Entity',
             tooltip=[
-                'Entity:', 
-                'Year:', 
+                alt.Tooltip('Entity', title='Entity:'),
+                alt.Tooltip('Year', title='Year:'),
                 alt.Tooltip('undernourishment', title='Undernourishment:', format='.1f', formatType='number')
             ]
         ).properties(
@@ -227,8 +227,7 @@ def _(alt, df2, max, min, mo):
             font="Lato"
         ).configure_legend(
             orient="bottom",
-            title=None
-        ).interactive()
+            title=None    ).interactive()
 
     mo.ui.altair_chart(chart1)
     return
@@ -257,8 +256,8 @@ def _(alt, max, min, multiselect, yearly_agg):
                         x=alt.X('Year:Q', axis=alt.Axis(format='d', title=None), scale=alt.Scale(domain=[min-0.5,max+0.5])),
                         y=alt.Y('variance_to_world_mean:Q', axis=alt.Axis(title='Variance to World Average')),
                         color=color_scale_2,  
-                        tooltip=[
-                            'Year:', 
+                        tooltip=[ 
+                            alt.Tooltip('Year', title='Year:'),
                             alt.Tooltip('undernourishment_mean', title='Undernourishment:', format='.1f'),
                             alt.Tooltip('variance_description', title='Comparison:')
                         ]
