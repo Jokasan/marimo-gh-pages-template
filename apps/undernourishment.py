@@ -103,7 +103,7 @@ def _(df, max, min, multiselect, pd):
     df2['variance_to_world'] = df2['undernourishment'] - df2['global_value']
     yearly_agg = df2[df2['Entity'] != 'World'].groupby('Year').agg({
             'undernourishment': ['mean', 'median', 'min', 'max'],
-            'global_value': 'first',  # Since global value is the same for each year
+            'global_value': 'first', 
             'variance_to_world': ['mean', 'median', 'min', 'max']
         }).reset_index()
 
@@ -202,21 +202,19 @@ def _(alt, df2, max, min, mo):
 
     chart1 = alt.Chart(df2).mark_line(
             point=alt.OverlayMarkDef(
-                size=45,  # Point size
+                size=45,  
                 shape='circle',  
-                filled=True,  # Whether points are filled
-                stroke='white',  # Point outline color
-                strokeWidth=1  # Point outline thickness
+                filled=True, 
+                stroke='white', 
+                strokeWidth=1  
             ),
-            strokeWidth=4  # Line thickness (increase from 2 to 3)
+            strokeWidth=4  
         ).encode(
             x=alt.X('Year:Q', 
                     axis=alt.Axis(format='d', title='Year'),
-                    # Set the visible year range (e.g., 2010-2020)
                     scale=alt.Scale(domain=[min-0.5, max+0.5])), 
             y=alt.Y('undernourishment:Q', 
                     axis=alt.Axis(title='Undernourishment Prevalence (%)'),
-                    # Set the visible undernourishment range (e.g., 0-30%)
                     scale=alt.Scale(domain=[0, df2['undernourishment'].max()+2])),
             color='Entity',
             tooltip=[
@@ -250,8 +248,8 @@ def _(alt, max, min, multiselect, yearly_agg):
     # Blue and red color scale:
     color_scale_2 = alt.condition(
                 alt.datum.variance_to_world_mean < 0,
-                alt.value("steelblue"),  # When below 0
-                alt.value("indianred")  # Otherwise
+                alt.value("steelblue"),  
+                alt.value("indianred")  
         )
 
     # Second chart variance to world mean with custom tooltip text:
@@ -331,8 +329,7 @@ def _(alt, max, min, undernourishment_change):
 @app.cell
 def _(chart2, mo, multiselect, slope_chart):
     # Output the two charts together:
-    mo.hstack([
-                    mo.vstack([
+    mo.hstack([mo.vstack([
                         mo.ui.altair_chart(chart2),
                         mo.md(f"*Selected regions: {', '.join([region for region in multiselect.value if region != 'World'])} vs. World*") if multiselect.value else mo.md("")
                     ]),
