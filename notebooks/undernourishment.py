@@ -40,7 +40,7 @@ def _(mo):
 @app.cell
 def _(alt, mo):
     # Apply carbonwhite theme:
-    alt.theme.enable('carbonwhite')
+    alt.themes.enable('carbonwhite')
     mo.output.clear()
     return
 
