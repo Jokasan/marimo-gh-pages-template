@@ -296,8 +296,9 @@ def _(alt, max, min, undernourishment_change):
                 x='Year:Q',
                 y='undernourishment:Q',
                 color='Entity:N',
-                tooltip=['Entity', 'Year', 
-                        alt.Tooltip('undernourishment', title='Undernourishment', format='.1f')]
+                tooltip=[alt.Tooltip('Entity',title='Entity:'),
+                         alt.Tooltip('Year',title='Year:'),
+                        alt.Tooltip('undernourishment', title='Undernourishment:', format='.1f')]
             )
 
     # Add text labels for tooltip:
