@@ -31,7 +31,7 @@ def _(mo):
         """
     # World Undernourishment Over Time
     ## By: Nils Indreiten
-    A deep dive into world undernourishment rates by region over time. The data was obtained from [Our World in Data](https://ourworldindata.org/grapher/prevalence-of-undernourishment), using the api.
+    A deep dive into world undernourishment rates by region over time. The data was obtained from [Our World in Data](https://ourworldindata.org/grapher/prevalence-of-undernourishment), using the Python api.
     """
     )
     return
