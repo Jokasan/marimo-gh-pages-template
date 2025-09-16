@@ -33,7 +33,7 @@ def _(mo):
     # World Undernourishment Over Time
     ## By: Nils Indreiten
     A deep dive into world undernourishment rates by region over time. Undernourishment is a condition where a person's habitual food consumption is insufficient to provide the dietary energy levels required to maintain a normal, active, and healthy life.
-    The regions included in this application are the FAO (Food and Agriculture Organisation regions). The data was obtained from [Our World in Data](https://ourworldindata.org/grapher/prevalence-of-undernourishment), using the Python api.
+    The regions included in this application are the FAO (Food and Agriculture Organisation) regions. The data was obtained from [Our World in Data](https://ourworldindata.org/grapher/prevalence-of-undernourishment), using the Python api.
     """
     )
     return
